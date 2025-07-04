@@ -18,7 +18,7 @@ describe("Token2Test", function() {
         address = await ethers.getSigners();
     });
 
-        it("testing decimalsToken2()", async function(){
+    it("testing decimalsToken2()", async function(){
         let result = await token2.decimals();
         expect(result).to.equal(18);
     });
