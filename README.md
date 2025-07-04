@@ -110,8 +110,9 @@ npm install
 ### Testing
 
 Run all tests:
+
 ```nodejs
-ardhat test
+npx hardhat test
 ```
 
 ### Frontend Usage
