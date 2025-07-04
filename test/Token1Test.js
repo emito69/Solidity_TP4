@@ -1,7 +1,7 @@
 const {expect} = require("chai");
 const { ethers } = require("hardhat");
 
-describe("SimpleSwap", function() {
+describe("Token1Test", function() {
     
     let Token1;  // deploy object
     let token1;  // contract object

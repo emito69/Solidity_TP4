@@ -12,15 +12,12 @@ describe("SimpleSwap", function() {
 
     let address = [owner, addr1, addr2];  // three contract where deployed using DeploymentModule
 
-    
-    
+        
     beforeEach(async function(){
         Simpleswap = await ethers.getContractFactory("SimpleSwap");
         simpleswap = await Simpleswap.deploy();
         address = await ethers.getSigners();
     });
-
-
 
     
     it("testing getAmountOut()", async function(){
@@ -34,6 +31,7 @@ describe("SimpleSwap", function() {
 
         expect(result).to.equal(amountOut);
     });
+
 
     it("testing ownerSimpleSwap()", async function(){
         let result = await simpleswap.owner();
