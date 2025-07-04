@@ -116,7 +116,7 @@ npx hardhat test
 ```
 
 ### Frontend Usage
-  1. Open index.html in a browser
+  1. Open (https://emito69.github.io/Solidity_TP4/frontend/index.html) in a browser
 
   2. Connect your MetaMask wallet
 
