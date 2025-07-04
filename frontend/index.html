@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+    <title>SwapContract Management</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+
+<body>
+
+    
+        <div class="panel" id="panel3">
+            <div class="input-group"></div>
+            <button id="connectButton" onclick="connect()">Connect Metamask Wallet</button>
+            <input type="text" style="text-align:center" name="connectMSG" id="connectMSG" placeholder="connect message" readonly>     	
+            </div>
+        </div>
+
+
+    <div class="container" id="myContainer">
+        <!-- Add Liquidity Panel -->
+        <div class="panel">
+            <div class="panel-title">Add Liquidity</div>
+            <div class="result-group">
+                <input type="text" id="addressTokenAADD" placeholder="address token A" readonly>
+            </div>
+            <div class="result-group">
+                <input type="text" id="addressTokenBADD" placeholder="address token B" readonly>
+            </div>
+            <br>
+            <div class="input-group">
+                <input type="number" id="amountADesiredADD" placeholder="amount A desired" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            <div class="input-group">
+                <input type="number" id="amountBDesiredADD" placeholder="amount B desired" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            <div class="input-group">
+                <input type="number" id="amountAMinADD" placeholder="amount A min" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            <div class="input-group">
+                <input type="number" id="amountBMinADD" placeholder="amount B min" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            <div class="input-group">
+                <input type="text" id="addressToADD" placeholder="address to">
+            </div>
+            <div class="input-group">
+                <input type="number" id="deadlineADD" placeholder="deadline" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            
+            <button id="addLiquidityButton" onclick="addLiquidity()">Add Liquidity</button>
+            
+            <div class="result-group">
+                <div class="result-title">Amount A effective</div>
+                <input type="text" id="amountAEffectiveADD" placeholder="amount A effective" readonly>
+            </div>
+            <div class="result-group">
+                <div class="result-title">Amount B effective</div>
+                <input type="text" id="amountBEffectiveADD" placeholder="amount B effective" readonly>
+            </div>
+            <div class="result-group">
+                <div class="result-title">Effective Liquidity</div>
+                <input type="text" id="effectiveLiquidityADD" placeholder="effective liquidity" readonly>
+            </div>
+        </div>
+        
+        <!-- Remove Liquidity Panel -->
+        <div class="panel">
+            <div class="panel-title">Remove Liquidity</div>
+            <div class="result-group">
+                <input type="text" id="addressTokenAREMOVE" placeholder="address token A" readonly>
+            </div>
+            <div class="result-group">
+                <input type="text" id="addressTokenBREMOVE" placeholder="address token B" readonly>
+            </div>
+            <br>
+            <div class="input-group">
+                <input type="number" id="liquidityREMOVE" placeholder="liquidity" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            <div class="input-group">
+                <input type="number" id="amountAMinREMOVE" placeholder="amount A min" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            <div class="input-group">
+                <input type="number" id="amountBMinREMOVE" placeholder="amount B min" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            <div class="input-group">
+                <input type="text" id="addressToREMOVE" placeholder="address to">
+            </div>
+            <div class="input-group">
+                <input type="number" id="deadlineREMOVE" placeholder="deadline" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            
+            <button id="removeLiquidityButton" onclick="removeLiquidity()">Remove Liquidity</button>
+            
+            <div class="result-group">
+                <div class="result-title">Amount A effective</div>
+                <input type="text" id="amountAEffectiveREMOVE" placeholder="amount A effective" readonly>
+            </div>
+            <div class="result-group">
+                <div class="result-title">Amount B effective</div>
+                <input type="text" id="amountBEffectiveREMOVE" placeholder="amount B effective" readonly>
+            </div>
+        </div>
+        
+        <!-- Swap Tokens Panel -->
+        <div class="panel">
+            <div class="panel-title">Swap Tokens</div>
+            <div class="input-group">
+                <input type="number" id="amountAInSWAP" placeholder="amount A in" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            <div class="input-group">
+                <input type="number" id="amountBOutMinSWAP" placeholder="amount B out min" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            <div class="result-group">
+                <input type="text" id="addressTokenASWAP" placeholder="address token A" readonly>
+            </div>
+            <div class="result-group">
+                <input type="text" id="addressTokenBSWAP" placeholder="address token B" readonly>
+            </div>
+            <br>
+            <div class="input-group">
+                <input type="text" id="addressToSWAP" placeholder="address to">
+            </div>
+            <div class="input-group">
+                <input type="number" id="deadlineSWAP" placeholder="deadline" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+            </div>
+            
+            <button id="swapTokensButton" onclick="swapTokens()">Swap Tokens</button>
+            
+            <div class="result-group">
+                <div class="result-title">Amount A effective</div>
+                <input type="text" id="amountAEffectiveSWAP" placeholder="amount A effective" readonly>
+            </div>
+            <div class="result-group">
+                <div class="result-title">Amount B effective</div>
+                <input type="text" id="amountBEffectiveSWAP" placeholder="amount B effective" readonly>
+            </div>
+        </div>
+
+        <div> <!-- Last column (two panels) -->
+                
+                <!-- Get Price Panel -->
+
+                <div class="panel">
+                    <div class="panel-title">Get Price</div>
+                    <div class="result-group">
+                        <input type="text" id="addressTokenAPRICE" placeholder="address token A" readonly>
+                    </div>
+                    <div class="result-group">
+                        <input type="text" id="addressTokenBPRICE" placeholder="address token B" readonly>
+                    </div>
+                    
+                    <button id="getPriceButton" onclick="getPrice()">Get Price</button>
+                    
+                    <div class="result-group">
+                        <div class="result-title">Spot Price of token A in terms of token B</div>
+                        <input type="text" id="priceAB" placeholder="spot price token A in terms of token B" readonly>
+                    </div>
+        
+                    <div class="result-group">
+                    </div>
+                    <div class="result-group">
+                    </div>
+                </div>
+
+                <!-- Get Amount Out Panel -->
+                <div class="panel">
+                    <div class="panel-title">Get Amount Out</div>
+                    <div class="input-group">
+                        <input type="number" id="amountInGET" placeholder="amount In" roninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="reserveInGET" placeholder="reserve In" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="reserveOutGET" placeholder="reserve Out" oninput="this.value=this.value.replace(/[^0-9]/g,'');">
+                    </div>
+                    
+                    <button class="input-group" id="getAmountOutButton" onclick="getAmountOut()">Get Amount Out</button>
+                    
+                    <div class="result-group">
+                        <div class="result-title">Amount Out</div>
+                        <input type="text" id="amountOutGET" placeholder="amount Out" readonly>
+                    </div>
+                </div>
+            
+            </div>
+
+        </div> <!-- Last column (two panels) -->
+
+        <!-- 
+        <div class="panel" id="panel2">
+            <div class="input-group">
+                <div class="result-title"> SwapContract Address</div>
+                <input type="text" id="swappcontractAddress" placeholder="SwappContract Address" >
+            </div>
+        </div>    
+        -->
+
+        <script>
+                
+                const container = document.getElementById("myContainer");
+                container.classList.toggle("enable-container");
+                
+                // Toggle disabled attribute on all form elements
+                const elements = container.querySelectorAll("input, text, button");
+                elements.forEach(el => el.disabled = !el.disabled);
+
+        </script>
+
+        
+    </div><!-- container -->
+
+
+    
+
+    <script>
+
+        function toggleContainer() {
+            const container = document.getElementById("myContainer");
+            const accountAddress = document.getElementById("accountAddress");
+            const connectButton = document.getElementById("connectButton");
+            container.classList.toggle("enable-container");
+            
+            // Toggle disabled attribute on all form elements
+            const elements = container.querySelectorAll("input, text, button");
+            elements.forEach(el => el.disabled = !el.disabled);
+
+            //accountAddress.disabled = !accountAddress.disabled;
+            //connectButton.disabled = !connectButton.disabled;
+        }
+    
+    connectButton.addEventListener("click", toggleContainer);
+
+    </script>
+
+    <script src="script.js"></script>
+
+</body>
+</html>

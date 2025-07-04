@@ -1,0 +1,111 @@
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+
+.container {
+  display: grid;
+  grid-template-columns: repeat(4, 2fr); /* 4 equal columns */
+  gap: 16px; /* Spacing between columns */  
+}
+
+
+/* Styles for disabled container */
+.container.enable-container {
+    opacity: 0.6;
+}
+
+.container.enable-container button {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.container.enable-container button:active {
+    transform: none;
+}
+
+.container.enable-container input,
+.container.enable-container button {
+    pointer-events: none;
+}
+
+/* Optional: Style for disabled inputs to make it more obvious */
+.container.enable-container input {
+    background-color: #f0f0f0;
+    border-color: #ddd;
+}
+
+
+/* All panels (including those in the last column) */
+.panel {
+  background: #f0f0f0;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Last column (two stacked panels) */
+.container > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Spacing between stacked panels */
+}
+
+        .panel-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        input[readonly] {
+            background-color: #f0f0f0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 10px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 100%;
+	    box-shadow: 0 2px #999;;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+	button:active {
+            box-shadow: 0 1px #666;
+            transform: translateY(2px);
+        }
+        .result-group {
+            margin-top: 15px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+        .result-title {
+            font-size: 14px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
