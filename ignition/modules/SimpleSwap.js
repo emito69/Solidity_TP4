@@ -6,7 +6,7 @@ const DeploymentModule = buildModule("DeploymentModule", (m) => {
     const token2 = m.contract("Token2");
     const simpleSwap = m.contract("SimpleSwap");
 
-    return { token1, token2, simpleSwap };
+    return { token1, token2, simpleSwap};
 });
 
 module.exports = DeploymentModule;

@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./LiquidityToken.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
+
 //@notice: A simple decentralized exchange contract for token swaps and liquidity provision
 //@dev: Implements basic AMM functionality with liquidity pools and token swaps
 contract SimpleSwap is Ownable {
@@ -141,7 +142,7 @@ contract SimpleSwap is Ownable {
         }
 
         // c) Token Transfer
-
+        
         // approve - already given by msg.sender
         // transfer
         bool statusA = _transferFrom(tokenA, msg.sender, address(this), tempStruct.amountA);
@@ -180,9 +181,9 @@ contract SimpleSwap is Ownable {
         // e) Mint Liquidity Tokens
 
         liqTokensData[key].mint(to, tempStruct.liqTemp);
-
+        
         emit AddLiquidity(msg.sender, to, tempStruct.tokenA, tempStruct.tokenB, tempStruct.amountA, tempStruct.amountB, tempStruct.liqTemp);
-
+        
         return (tempStruct.amountA, tempStruct.amountB, tempStruct.liqTemp);
 
     }
@@ -298,7 +299,7 @@ contract SimpleSwap is Ownable {
         _amounts[0]= amountIn;
         _amounts[1]= ammountOut;
         
-        emit SwapExactTokensForTokens(msg.sender, to, tempStruct.tokenA, tempStruct.tokenB, amounts); 
+        emit SwapExactTokensForTokens(msg.sender, to, tempStruct.tokenA, tempStruct.tokenB, _amounts); 
 
         return amounts;
     }

@@ -22,6 +22,9 @@ describe("SimpleSwap", function() {
     let token2Address;
     let simpleswapAddress;
 
+    let amountInR;
+    let amountOutR;
+
 
     beforeEach(async function() {
         // Get signers
@@ -67,12 +70,12 @@ describe("SimpleSwap", function() {
         expect(result).to.equal(owner);
     });
 
- /* NOT WORKING   
+  
     it("should allow token swaps between Token1 and Token2", async function() {
         // Mint some tokens to SwapContract
-        const mintAmount = ethers.parseEther("10000000000000000");
-        await token1.mint(simpleswapAddress, mintAmount);
-        await token2.mint(simpleswapAddress, mintAmount);
+        const mintAmount = ethers.parseEther("1000000000000000000");
+        //await token1.mint(simpleswapAddress, mintAmount);
+        //await token2.mint(simpleswapAddress, mintAmount);
         
         // Mint some tokens to owner
         await token1.mint(owner, mintAmount);
@@ -86,10 +89,6 @@ describe("SimpleSwap", function() {
         await token1.mint(addr2, mintAmount);
         await token1.mint(addr2, mintAmount);
         
-        // Approve SimpleSwap to spend tokens (the maximum)
-        await token1.approve(simpleswapAddress, mintAmount);
-        await token2.approve(simpleswapAddress, mintAmount);
-
         // Approve SimpleSwap to spend tokens (the maximum)
         await token1.approve(simpleswapAddress, mintAmount);
         await token2.approve(simpleswapAddress, mintAmount);
@@ -97,152 +96,97 @@ describe("SimpleSwap", function() {
         // Addresses input parameter array
         const addresssArray = [token1Address, token2Address];
 
-        const deadline = ethers.parseEther("10000000000000000");
+        //const block = await ethers.provider.getBlock("latest");
+        const deadline = 1000000001000000;
         
         // Add a Liquidity Pool
-        const amountADesired = ethers.parseEther("50000000000000");
-        const amountBDesired = ethers.parseEther("50000000000000");
-        
+        const amountDesired = ethers.parseEther("50000000000000");
+        const amountMin = ethers.parseEther("50000000");
 
-        const tx = await simpleswap.addLiquidity(
-                                        token1Address, 
-                                        token2Address,
-                                        amountADesired,
-                                        amountBDesired,
-                                        amountADesired,
-                                        amountBDesired,
-                                        owner,
-                                        deadline,
-                                    );
+        const tx = await simpleswap.addLiquidity(token1Address, token2Address, amountDesired, amountDesired, amountMin, amountMin, owner, deadline);
         // Wait for confirmation
         const receipt = await tx.wait();
-        
+
+        // The return values are in the receipt's events
+        // Find the SwapExactTokensForTokens event in the logs
+        const event = receipt.logs
+            .map(log => {
+                try {
+                return simpleswap.interface.parseLog(log);
+                } catch {
+                return null;
+                }
+            })
+            .find(e => e?.name === "AddLiquidity"); // Replace with your actual event name
+
+        //console.log(event);
+                        
         // Verify transaction success
         expect(receipt.status).to.equal(1);
 
         // Access emitted events
         //const event = receipt.events?.find(e => e.event === "AddLiquidity");
-        const event = receipt.events?.find(e => console.log(e.event));
+
+        //console.log(receipt.events);
+
+        //const event2 = receipt.events?.find(e => e.event === "AddLiquidity");
   
         // Verify event was emitted
         expect(event).to.not.be.undefined;
         
-        
-                        
-    });
- */   
- /* NOT WORKING   
-    it("should allow token swaps between Token1 and Token2", async function() {
-        // Mint some tokens to SwapContract
-        const mintAmount = ethers.parseEther("10000000000000000");
-        await token1.mint(simpleswap.getAddress(), mintAmount);
-        await token2.mint(simpleswap.getAddress(), mintAmount);
-        
-        // Mint some tokens to owner
-        await token1.mint(owner, mintAmount);
-        await token2.mint(owner, mintAmount);
-
-        // Mint some tokens to addr1
-        await token1.mint(addr1, mintAmount);
-        await token2.mint(addr1, mintAmount);
-
-        // Mint some tokens to addr2
-        await token1.mint(addr2, mintAmount);
-        await token1.mint(addr2, mintAmount);
-        
-        // Approve SimpleSwap to spend tokens (the maximum)
-        await token1.approve(await simpleswap.getAddress(), mintAmount);
-        await token2.approve(await simpleswap.getAddress(), mintAmount);
-
-        // Approve SimpleSwap to spend tokens (the maximum)
-        await token1.approve(await simpleswap.getAddress(), mintAmount);
-        await token2.approve(await simpleswap.getAddress(), mintAmount);
-
-        // Addresses input parameter array
-        const addresssArray = [token1.getAddress(), token2.getAddress()];
-
-        const deadline = ethers.parseEther("10000000000000000");
-        
-        // Add a Liquidity Pool
-        const amountADesired = ethers.parseEther("500000000000000");
-        const amountBDesired = ethers.parseEther("500000000000000");
-        
-
-        const tx1 = await simpleswap.addLiquidity(
-                                        token1.getAddress(), 
-                                        token2.getAddress(),
-                                        amountADesired,
-                                        amountBDesired,
-                                        amountADesired,
-                                        amountBDesired,
-                                        owner,
-                                        deadline,
-                                    );
-
-        // Wait for the transaction to be mined
-        const receipt1 = await tx1.wait();
-        
-        // The return values are in the receipt's events
-        // Find the SwapExactTokensForTokens event in the logs
-        const event1 = receipt1.events?.find(e => e.event === "AddLiquidity");
-
-        if (event1) {
+        if (event) {
             // The amounts array is the last argument in the event
-            const a1 = event1.args.amountA;
-            const a2 = event1.args.amountB;
-            const l1 = event1.args.liquidity;
-            
-            console.log("Return values:");
-            console.log(a1);
-            console.log(a2);
-            onsole.log(l1);
+            const a1 = event.args.amountA;
+            const a2 = event.args.amountB;
+            const l1 = event.args.liquidity;
 
         } else {
             console.error("Event not found in transaction receipt");
         }
-
+        
+        
+        
+        // check Before
         const token2BalanceBefore = await token2.balanceOf(owner.getAddress());
 
         // Perform swap
-        const swapAmountIn = ethers.parseEther("10000");
+        const swapAmountIn = ethers.parseEther("999999");
         const swapAmountOutMin = ethers.parseEther("10");
-        const tx2  = await simpleswap.swapExactTokensForTokens(
-                                        swapAmountIn,
-                                        swapAmountOutMin,
-                                        addresssArray,
-                                        owner,
-                                        deadline,
-                                    );
-        console.log(tx2.data[0]);
-         // Wait for the transaction to be mined
+        const tx2  = await simpleswap.swapExactTokensForTokens(swapAmountIn, swapAmountOutMin, addresssArray, owner, deadline);
+
+        // Wait for confirmation
         const receipt2 = await tx2.wait();
-        console.log(receipt2);
+        
         // The return values are in the receipt's events
         // Find the SwapExactTokensForTokens event in the logs
-        const event2 = receipt2.events?.find(e => e.event === "SwapExactTokensForTokens");
-        
-        const amountsArray = new Array(2);
+        const event2 = receipt2.logs
+            .map(log => {
+                try {
+                return simpleswap.interface.parseLog(log);
+                } catch {
+                return null;
+                }
+            })
+            .find(e => e?.name === "SwapExactTokensForTokens"); // Replace with your actual event name
 
-        if (event2) {
-            // The amounts array is the last argument in the event
-            amountsArray = event2.args.amounts;
-            
-            console.log("Return values:");
-            console.log(amountsArray[0]);
-            console.log(amountsArray[1]);
+        expect(event2).to.not.be.undefined;
+        // Access the amounts array
+        const args = event2.args;
+        const amounts = args.amounts;
+        
+        if (event2) {                   
+ 
 
         } else {
             console.error("Event not found in transaction receipt");
         }
         
-        // Check balances
-        const token2BalanceAfter = await token2.balanceOf(owner.getAddress());
+        // check After
+        const token2BalanceAfter = await token2.balanceOf(owner);
        
-//       expect(ethers.parseEther(token2BalanceAfter)).to.equal(ethers.parseEther(token2BalanceBefore)+ethers.parseEther(amountsArray[2]));
-
-        expect(token2BalanceAfter).to.equal(BigInt(token2BalanceBefore)+BigInt(amountsArray[1]));
+        expect(token2BalanceAfter).to.equal(BigInt(token2BalanceBefore)+BigInt(amounts[1]));
+            
     });
-*/
-
+  
     
 });
