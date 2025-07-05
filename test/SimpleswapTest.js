@@ -54,6 +54,7 @@ describe("SimpleSwap", function() {
         console.log("SimpleSwap address:", simpleswapAddress);
     });
 
+
     it("testing getPrice()", async function() {
         const amountIn = ethers.parseEther("999998765522");
         const reserveIn = ethers.parseEther("99999876552200000000000000");
@@ -65,6 +66,7 @@ describe("SimpleSwap", function() {
         expect(result).to.equal(amountOut);
     });
 
+
     it("testing getAmountOut()", async function() {
         const amountIn = ethers.parseEther("999998765522");
         const reserveIn = ethers.parseEther("99999876552200000000000000");
@@ -75,7 +77,6 @@ describe("SimpleSwap", function() {
         let result = await simpleswap.getAmountOut(amountIn, reserveIn, reserveOut);
         expect(result).to.equal(amountOut);
     });
-
     
     
     it("testing addLiquidity should REVERT if amounts equals 0", async function() {
@@ -296,6 +297,78 @@ describe("SimpleSwap", function() {
     });
   
 
+    it("testing owner SwapContract", async function(){
+        let result = await simpleswap.owner();
+        expect(result).to.equal(owner);
+    });
 
+/* NOT WORKING
+    it("testing DATAAAAAAAAA addLiquidity should handle both event and return value - should allow add a Liquidity Pool of Token1 and Token2", async function() {
+        // Mint some tokens to SwapContract
+        const mintAmount = ethers.parseEther("1000000000000000000");
+        //await token1.mint(simpleswapAddress, mintAmount);
+        //await token2.mint(simpleswapAddress, mintAmount);
+        
+        // Mint some tokens to owner
+        await token1.mint(owner, mintAmount);
+        await token2.mint(owner, mintAmount);
+
+        // Mint some tokens to addr1
+        await token1.mint(addr1, mintAmount);
+        await token2.mint(addr1, mintAmount);
+
+        // Mint some tokens to addr2
+        await token1.mint(addr2, mintAmount);
+        await token1.mint(addr2, mintAmount);
+        
+        // Approve SimpleSwap to spend tokens (the maximum)
+        await token1.approve(simpleswapAddress, mintAmount);
+        await token2.approve(simpleswapAddress, mintAmount);
+
+        // Addresses input parameter array
+        const addresssArray = [token1Address, token2Address];
+
+        //const block = await ethers.provider.getBlock("latest");
+        const deadline = 1000000001000000;
+        
+        // Add a Liquidity Pool
+        const amountDesired = ethers.parseEther("50000000000000");
+        const amountMin = ethers.parseEther("50000000");
+
+        const tx = await simpleswap.addLiquidity(token1Address, token2Address, amountDesired, amountDesired, amountMin, amountMin, owner, deadline);
+        
+        const receipt = await tx.wait();
+        
+        // Verify transaction success
+        expect(receipt.status).to.equal(1);
+
+
+        // check Before
+        const token2BalanceBefore = await token2.balanceOf(owner.getAddress());
+
+        // Perform swap
+        const swapAmountIn = ethers.parseEther("999999");
+        const swapAmountOutMin = ethers.parseEther("10");
+        
+        // HANDLING DATA DIRECTLY FROM THE RESPONSE TRANSACTION
+        const tx2  = await simpleswap.swapExactTokensForTokens(swapAmountIn, swapAmountOutMin, addresssArray, owner, deadline);
+
+        // Wait for confirmation (this contains events)
+        const receipt2 = await tx2.wait();
+  
+        // Get the return value (available in newer EVM versions)
+        const returnValue = await tx2.wait().then(receipt2 => {
+            // This works if the contract and EVM support return data in receipts
+            return simpleswap.interface.decodeFunctionResult(
+                                    "swapExactTokensForTokens",
+                                    receipt.logs[0].data
+                                    );
+        });
+  
+        console.log("Return value:", returnValue);
+
+       
+
+    });   */ 
 
 });
