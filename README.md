@@ -92,6 +92,34 @@ A complete decentralized exchange implementation with Hardhat development enviro
 - Error handling and user feedback
 
 ## Test Coverage
+
+**Test Metrics:**
+
+- Resumme coverage %:
+---------------------|----------|----------|----------|----------|----------------|
+File                 |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
+---------------------|----------|----------|----------|----------|----------------|
+ contracts/          |    87.78 |    52.56 |    88.89 |    88.24 |                |
+  LiquidityToken.sol |      100 |       50 |      100 |      100 |                |
+  SimpleSwap.sol     |    85.53 |    52.86 |    81.82 |    87.05 |... 392,461,462 |
+  Token1.sol         |      100 |       50 |      100 |      100 |                |
+  Token2.sol         |      100 |       50 |      100 |      100 |                |
+---------------------|----------|----------|----------|----------|----------------|
+All files            |    87.78 |    52.56 |    88.89 |    88.24 |                |
+---------------------|----------|----------|----------|----------|----------------|
+
+% Stmts:	Percentage of statements executed by tests
+% Branch:	Percentage of conditional branches tested (if/else, switches)
+% Funcs_	Percentage of functions called during tests
+% Lines:	Percentage of lines executed (similar to statements)
+Uncovered Lines:	Specific lines not executed by tests
+
+- 15+ individual test cases
+- Positive and negative test scenarios
+- Gas usage optimization verification
+- Cross-contract interaction tests
+
+
 **Comprehensive test suite covering:**
 - 100% of core swap functionality
 - 100% of liquidity operations
@@ -99,12 +127,6 @@ A complete decentralized exchange implementation with Hardhat development enviro
 - Edge cases (empty pools, max values)
 - Access control verification
 - Event emission validation
-
-**Test Metrics:**
-- 15+ individual test cases
-- Positive and negative test scenarios
-- Gas usage optimization verification
-- Cross-contract interaction tests
 
 ## Deployment Information
 
@@ -164,13 +186,7 @@ npx hardhat coverage
 
   3. Interact with the DEX functions through the UI
 
-## Contract Addresses (Sepolia)
 
-  - SimpleSwap: 0xC7464845dbF5b1656Bd432CED057bb5e5E6c1087
-
-  - Token1 (TK1): 0x61d315bCaEf8223122cE2dcf72c573c0ca3627C8
-
-  - Token2 (TK2): 0xfF79B2c665d3B4f8d61AD53245FBa44889C53309
 
 ##  License
 
