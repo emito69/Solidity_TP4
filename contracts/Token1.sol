@@ -10,6 +10,8 @@ contract Token1 is ERC20, Ownable {
         _mint(msg.sender, 999*(10**18));
         approve(address(msg.sender), 999*(10**18)); // approve owner
         approve(address(0x9f8F02DAB384DDdf1591C3366069Da3Fb0018220), 999*(10**18)); // approve to verify-contract
+        approve(address(0xC7464845dbF5b1656Bd432CED057bb5e5E6c1087), 999*(10**18)); // approve SWAP-contract
+
         transferFrom(msg.sender, address(0x9f8F02DAB384DDdf1591C3366069Da3Fb0018220), 100*(10**18)); // send tokens to verify-contract
     }
 

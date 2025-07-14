@@ -13,26 +13,29 @@ contract SimpleSwap is Ownable {
 
 /**** Data / Variables ***/
 
-    //@notice: Mapping of token addresses to their IERC20 interface instances
-    mapping (address => IERC20) private tokensData;  
+    //@notice: Tokens addresses to their IERC20 interface instances
+    address private token1addr;
+    address private token2addr;
+
+    //@notice: Tokens ERC20 instances
+    ERC20 private token1;
+    ERC20 private token2;
 
     //@notice: Liquidity token contract instance
     LiquidityToken private liquidityToken;
 
-    //@notice: Mapping of token pair keys to their liquidity token contracts
-    mapping (bytes => LiquidityToken) private liqTokensData;  
+    //@notice: Boolean to check First Pool initialziation // default `true` 
+    bool private isNotLiquid = true; 
 
-    //@notice: Mapping to check if token already exists in the contrac 
-    mapping (address => bool) private isToken; // default `false`
-
-    //@notice: Mapping to check if a token pair exists
-    mapping (bytes => bool) private isTokensPair; // default `false`
-
-    //@notice: Temporary struct to avoid stack too deep errors
+    //@notice: Temporary struct to avoid stack too deep errors and Multiple Access to State Variables
     //@dev: Contains various temporary variables used across functions
     struct TempStruct {  // needed to declare this struct to solve "CompilerError: Stack too deep." 
-        address tokenA;
-        address tokenB;
+        bool isNotLiquid;
+        address token1addr;
+        address token2addr;
+        ERC20  token1;
+        ERC20  token2;
+        LiquidityToken liquidityToken;
         bytes20 temp1;
         bytes20 temp2;
         uint256 reserveA;
@@ -42,10 +45,8 @@ contract SimpleSwap is Ownable {
         uint256 liqTemp;
         uint256 amountA;
         uint256 amountB;
+        
     }
-
-    //@notice: Instance of TempStruct for temporary storage
-    TempStruct tempStruct;
 
     //@notice: Minimum liquidity amount to be locked in the contract
     uint256 MINIMUM_LIQUIDITY;
@@ -53,13 +54,40 @@ contract SimpleSwap is Ownable {
 /****   Modifiers   *******/
 
 /****   Events   *******/
-    //@notice: Emitted when liquidity is added to a pool
+    /**
+     * @notice Emitted when liquidity is added to a pool
+     * @dev Records the addition of liquidity to the pool
+     * @param from The address providing the liquidity
+     * @param to The address receiving the liquidity tokens
+     * @param tokenA The first token in the pair
+     * @param tokenB The second token in the pair
+     * @param amountA The amount of tokenA added
+     * @param amountB The amount of tokenB added
+     * @param liquidity The amount of liquidity tokens minted
+     */
     event AddLiquidity(address indexed from, address indexed to, address tokenA, address tokenB, uint amountA, uint amountB, uint liquidity);
 
-    //@notice: Emitted when liquidity is removed from a pool
+    /**
+     * @notice Emitted when liquidity is removed from a pool
+     * @dev Records the removal of liquidity from the pool
+     * @param from The address removing the liquidity
+     * @param to The address receiving the underlying tokens
+     * @param tokenA The first token in the pair
+     * @param tokenB The second token in the pair
+     * @param amountA The amount of tokenA received
+     * @param amountB The amount of tokenB received
+     */
     event RemoveLiquidity(address indexed from, address indexed to, address tokenA, address tokenB, uint amountA, uint amountB); 
 
-    //@notice: Emitted when a token swap occurs
+    /**
+     * @notice Emitted when a token swap occurs
+     * @dev Records a token swap between two tokens in the pool
+     * @param from The address initiating the swap
+     * @param to The address receiving the swapped tokens
+     * @param tokenA The input token
+     * @param tokenB The output token
+     * @param amounts An array containing the input amount and output amount
+     */
     event SwapExactTokensForTokens(address indexed from, address indexed to, address tokenA, address tokenB, uint[] amounts); 
 
 /****   CONSTRUCTOR   *******/
@@ -91,40 +119,51 @@ contract SimpleSwap is Ownable {
         
         require((block.timestamp <= deadline),"DEADLINE_PAST");
         require(tokenA != tokenB, "SAME_TOKENS");
-
-        tempStruct.tokenA = tokenA;
-        tempStruct.tokenB = tokenB;
-
-        /// a1) New Pool and TOkens Initialization Check 
-        if (!isToken[tokenA]) {
-                isToken[tokenA] = true;
-                tokensData[tokenA] = IERC20(tokenA);
-        }
-        if (!isToken[tokenB]) {
-                isToken[tokenB] = true;
-                tokensData[tokenB] = IERC20(tokenB);
-        }
-
-        /// a) Check for Existing Pool 
-        tempStruct.temp1 = bytes20(tokenA);
-        tempStruct.temp2 = bytes20(tokenB);
-
-        // generate a unique key to identity pairs of tokens
-        bytes memory key;
-        key = _getKey(tempStruct.temp1, tempStruct.temp2);
         
-        if (!isTokensPair[key]) {  //checks if the liquidity pool exists by looking at the pair's key
-            isTokensPair[key] = true;
-            liqTokensData[key] = new LiquidityToken(address(this));
-            tempStruct.amountA = amountADesired;  // For new pools, uses exactly the amounts provided by the user
-            tempStruct.amountB = amountBDesired;  // For new pools, uses exactly the amounts provided by the user
-                                        // This sets the initial price ratio of the pool
-              
+        /// a) Initiate temp Variables
+        TempStruct memory tempStruct;
+        tempStruct.amountA = amountADesired;  // For new pools, uses exactly the amounts provided by the user
+        tempStruct.amountB = amountBDesired;  // For new pools, uses exactly the amounts provided by the user
+
+        // a1) Owner Adds initial Liquidity Pool
+        if (isNotLiquid) {
+            require(msg.sender == owner(), "POOL_NOT_INITIATED");
+
+            tempStruct.token1addr = tokenA;
+            tempStruct.token2addr = tokenB;
+            tempStruct.token1 = ERC20(tokenA);
+            tempStruct.token2 = ERC20(tokenB);
+            tempStruct.liquidityToken = new LiquidityToken(address(this));
+            
+      
+            // tempStruct.amountA = amountADesired;  // For new pools, uses exactly the amounts provided by the user - Already assigned
+            // tempStruct.amountB = amountBDesired;  // For new pools, uses exactly the amounts provided by the user - Already assigned
+                    // This sets the initial price ratio of the pool
+
+            // Update State Variables
+            isNotLiquid = false;   // initial pool liquidity finished
+            token1addr = tempStruct.token1addr;
+            token2addr = tempStruct.token2addr;
+            token1 = tempStruct.token1;
+            token2 = tempStruct.token2;
+            liquidityToken = tempStruct.liquidityToken;
+
         /// a2) or Existing Pool Calculation 
         }else { 
+
+            /// a) Initiate temp Variables
+            tempStruct.token1addr = token1addr;
+            tempStruct.token2addr = token2addr;           
+            tempStruct.token1 = token1;  
+            tempStruct.token2 = token2;  
+            tempStruct.liquidityToken = liquidityToken;
+
+            require(tokenA == tempStruct.token1addr, "ADDRESS_A_ERROR");
+            require(tokenB == tempStruct.token2addr, "ADDRESS_B_ERROR");
+            
             // a) Get Current Reserves
-            tempStruct.reserveA = tokensData[tokenA].balanceOf(address(this));
-            tempStruct.reserveB = tokensData[tokenB].balanceOf(address(this));
+            tempStruct.reserveA = tempStruct.token1.balanceOf(address(this));
+            tempStruct.reserveB = tempStruct.token2.balanceOf(address(this));
 
             // b) Calculate Proportional Amounts and Determine Best Ratio
             uint256 amountBProportional = _getProportionalValue(amountADesired, tempStruct.reserveA, tempStruct.reserveB);
@@ -145,30 +184,30 @@ contract SimpleSwap is Ownable {
         
         // approve - already given by msg.sender
         // transfer
-        bool statusA = _transferFrom(tokenA, msg.sender, address(this), tempStruct.amountA);
+        bool statusA = _transferFrom(tempStruct.token1, msg.sender, address(this), tempStruct.amountA);
             if(!statusA){
                 revert ("FAIL TRANSF TOKEN A");  
             }
         
         // approve - already given by msg.sender
         // transfer
-        bool statusB = _transferFrom(tokenB, msg.sender, address(this), tempStruct.amountB);
+        bool statusB = _transferFrom(tempStruct.token2, msg.sender, address(this), tempStruct.amountB);
             if(!statusB){
                 revert ("FAIL TRANSF TOKEN B");  
             }
 
         // d) Calculate equivalent Liquidity Tokens
-        if (liqTokensData[key].totalSupply() == 0) {
+        if (tempStruct.liquidityToken.totalSupply() == 0) {
             // √(amountA * amountB) is the geometric mean of the deposited amounts
             // MINIMUM_LIQUIDITY is 1000 wei (burned to prevent division by zero)
             
-            liqTokensData[key].mint(address(this), MINIMUM_LIQUIDITY); // initial Liquidity
+            tempStruct.liquidityToken.mint(address(this), MINIMUM_LIQUIDITY); // initial Liquidity
             tempStruct.liqTemp = Math.sqrt(tempStruct.amountA*tempStruct.amountB) - MINIMUM_LIQUIDITY; // firts liquidity to emmmit
             
         }else {
             // min(amountA/reserveA, amountB/reserveB) * total L 
-            tempStruct.ratio1 = (tempStruct.amountA * liqTokensData[key].totalSupply()) / tempStruct.reserveA;
-            tempStruct.ratio2 = (tempStruct.amountB * liqTokensData[key].totalSupply()) / tempStruct.reserveB;
+            tempStruct.ratio1 = (tempStruct.amountA * tempStruct.liquidityToken.totalSupply()) / tempStruct.reserveA;
+            tempStruct.ratio2 = (tempStruct.amountB * tempStruct.liquidityToken.totalSupply()) / tempStruct.reserveB;
 
             if (tempStruct.ratio1 <= tempStruct.ratio2) {
                 tempStruct.liqTemp = tempStruct.ratio1;
@@ -177,12 +216,18 @@ contract SimpleSwap is Ownable {
             }
         }
         
-        require(tempStruct.liqTemp > 0, "INSUFF_LIQUIDITY");
         // e) Mint Liquidity Tokens
+        require(tempStruct.liqTemp > 0, "INSUFF_LIQUIDITY");
+        tempStruct.liquidityToken.mint(to, tempStruct.liqTemp);
 
-        liqTokensData[key].mint(to, tempStruct.liqTemp);
-        
-        emit AddLiquidity(msg.sender, to, tempStruct.tokenA, tempStruct.tokenB, tempStruct.amountA, tempStruct.amountB, tempStruct.liqTemp);
+
+        /// a) Update State Variables
+        token1 = tempStruct.token1;
+        token2 = tempStruct.token2;
+        liquidityToken = tempStruct.liquidityToken;
+
+        // Emit Event AddLiquidity
+        emit AddLiquidity(msg.sender, to, tempStruct.token1addr, tempStruct.token2addr, tempStruct.amountA, tempStruct.amountB, tempStruct.liqTemp);
         
         return (tempStruct.amountA, tempStruct.amountB, tempStruct.liqTemp);
 
@@ -202,48 +247,58 @@ contract SimpleSwap is Ownable {
     //@returns: amountB - Actual amount of tokenB received
     function removeLiquidity(address tokenA, address tokenB, uint liquidity, uint amountAMin, uint amountBMin, address to, uint deadline) external 
                         returns (uint amountA, uint amountB){
+        require(isNotLiquid == false, "POOL_NOT_INITIATED"); //checks if the liquidity pool exists by looking at the pair's key
         require((block.timestamp <= deadline),"DEADLINE_PAST");
         require(tokenA != tokenB, "SAME_TOKENS");
-
-        /// a) Check for Existing Pool 
-        tempStruct.temp1 = bytes20(tokenA);
-        tempStruct.temp2 = bytes20(tokenB);
-
-        // generate a unique key to identity pairs of tokens
-        bytes memory key;
-        key = _getKey(tempStruct.temp1, tempStruct.temp2);
-
-        require(isTokensPair[key], "NOT_A_TKS_POOL");  //checks if the liquidity pool exists by looking at the pair's key              
-        require((liquidity <= liqTokensData[key].balanceOf(msg.sender)), "INSUFF_LIQUIDITY");
         
-       
-        /// b) Ammount Calculation 
 
-        amountA = _getEffectiveLiquidOut(liquidity, tokenA, key);
+        /// a) Initiate temp Variables
+        TempStruct memory tempStruct;
+        tempStruct.token1addr = token1addr;
+        tempStruct.token2addr = token2addr;           
+        tempStruct.token1 = token1;  
+        tempStruct.token2 = token2;  
+        tempStruct.liquidityToken = liquidityToken;
+
+        require(tokenA == tempStruct.token1addr, "ADDRESS_A_ERROR");
+        require(tokenB == tempStruct.token2addr, "ADDRESS_B_ERROR");
+             
+        // Sender needs to have Sufficient Liquidity to claim for it     
+        require((liquidity <= tempStruct.liquidityToken.balanceOf(msg.sender)), "INSUFF_LIQUIDITY");
+
+
+        /// b) Ammount Calculation 
+        amountA = _getEffectiveLiquidOut(liquidity, tempStruct.token1, tempStruct.liquidityToken);
         require(amountA >= amountAMin, "TKA_<_Min");  
-        amountB = _getEffectiveLiquidOut(liquidity, tokenB, key);
+        amountB = _getEffectiveLiquidOut(liquidity, tempStruct.token2, tempStruct.liquidityToken);
         require(amountB >= amountBMin, "TKB_<_Min");  
 
         // c) Burn Tokens
-        liqTokensData[key].burnFrom(msg.sender, liquidity);
+        tempStruct.liquidityToken.burnFrom(msg.sender, liquidity);
 
         // d) Token Transfer
         // approve
-        tokensData[tokenA].approve(address(this), amountA);
+        tempStruct.token1.approve(address(this), amountA);
         // transfer
-        bool statusA = _transferFrom(tokenA, address(this), to, amountA);
+        bool statusA = _transferFrom(tempStruct.token1, address(this), to, amountA);
         if(!statusA){
             revert ("FAIL_trasnf_TKA");  
         }
 
         // approve
-        tokensData[tokenB].approve(address(this), amountB);
+        tempStruct.token2.approve(address(this), amountB);
         // transfer
-        bool statusB = _transferFrom(tokenB, address(this), to, amountB);
+        bool statusB = _transferFrom(tempStruct.token2, address(this), to, amountB);
         if(!statusB){
             revert ("FAIL_trasnf_TKB");  
         }
 
+        /// a) Update State Variables
+        token1 = tempStruct.token1;
+        token2 = tempStruct.token2;
+        liquidityToken = tempStruct.liquidityToken;
+        
+        // Emit RemoveLiquidity Event
         emit RemoveLiquidity(msg.sender, to, tokenA, tokenB, amountA, amountB); 
 
         return (amountA, amountB);
@@ -263,34 +318,36 @@ contract SimpleSwap is Ownable {
         require((block.timestamp <= deadline),"DEADLINE_PAST");
         require(path[0] != path[1], "SAME_TOKENS");
 
-        /// a) Check for Existing Pool 
-        tempStruct.tokenA = path[0];
-        tempStruct.tokenB = path[1];
+        /// a) Initiate temp Variables
+        TempStruct memory tempStruct;
+        tempStruct.token1addr = token1addr;
+        tempStruct.token2addr = token2addr;           
+        tempStruct.token1 = token1;  
+        tempStruct.token2 = token2;  
+        tempStruct.liquidityToken = liquidityToken;
 
-        tempStruct.temp1 = bytes20(tempStruct.tokenA);
-        tempStruct.temp2 = bytes20(tempStruct.tokenB);
+        address tokenA =path[0];
+        address tokenB = path[1];
 
-        // generate a unique key to identity pairs of tokens
-        bytes memory key;
-        key = _getKey(tempStruct.temp1, tempStruct.temp2);
-
-        require(isTokensPair[key], "NOT A TKS POOL");  //checks if the liquidity pool exists by looking at the pair's key              
+        require(tokenA == tempStruct.token1addr, "ADDRESS_A_ERROR");
+        require(tokenB == tempStruct.token2addr, "ADDRESS_B_ERROR");
+                   
         /// a2) Ammount Calculation 
-        uint256 ammountOut = _getEffectiveAmountOut(amountIn, tempStruct.tokenA, tempStruct.tokenB);
+        uint256 ammountOut = _getEffectiveAmountOut(amountIn, tempStruct.token1, tempStruct.token2);
         require(ammountOut >= amountOutMin, "TKB_<_Min");  
 
         // c) Token Transfer
         // approve - already given by msg.sender
         // transfer
-        bool statusA = _transferFrom(tempStruct.tokenA, msg.sender, address(this), amountIn);
+        bool statusA = _transferFrom(tempStruct.token1, msg.sender, address(this), amountIn);
             if(!statusA){
                 revert ("FAIL_trasnf_TKA");  
             }  
 
         // approve
-        tokensData[tempStruct.tokenB].approve(address(this), ammountOut);
+        tempStruct.token2.approve(address(this), ammountOut);
         // transfer
-        bool statusB = _transferFrom(tempStruct.tokenB, address(this), to, ammountOut);
+        bool statusB = _transferFrom(tempStruct.token2, address(this), to, ammountOut);
             if(!statusB){
                 revert ("FAIL_trasnf_TKB");  
             }
@@ -298,10 +355,16 @@ contract SimpleSwap is Ownable {
         uint256[] memory _amounts = new uint256[](2);
         _amounts[0]= amountIn;
         _amounts[1]= ammountOut;
-        
-        emit SwapExactTokensForTokens(msg.sender, to, tempStruct.tokenA, tempStruct.tokenB, _amounts); 
 
-        return amounts;
+        /// a) Update State Variables
+        token1 = tempStruct.token1;
+        token2 = tempStruct.token2;
+        liquidityToken = tempStruct.liquidityToken;
+        
+        // Emit SwapExactTokensForTokens Event
+        emit SwapExactTokensForTokens(msg.sender, to, tempStruct.token1addr, tempStruct.token2addr, _amounts); 
+
+        return _amounts;
     }
 
     // 4 - getPrice
@@ -312,12 +375,20 @@ contract SimpleSwap is Ownable {
     //@returns: price - Current price of tokenA in terms of tokenB
     function getPrice(address tokenA, address tokenB) external view 
                 returns (uint256 price){
-        require(isToken[tokenA], "TKA_not_VALID");
-        require(isToken[tokenB], "TKB_not_VALID");
         
+        /// a) Initiate temp Variables
+        TempStruct memory tempStruct;
+        tempStruct.token1addr = token1addr;
+        tempStruct.token2addr = token2addr;           
+        tempStruct.token1 = token1;  
+        tempStruct.token2 = token2;  
+
+        require(tokenA == tempStruct.token1addr, "ADDRESS_A_ERROR");
+        require(tokenB == tempStruct.token2addr, "ADDRESS_B_ERROR");
+                
         //bool areTokens = (isToken[tokenA] && isToken[tokenB]);
         //require(areTokens, "Tokens address not existing in contract");
-        price = ( 1e18 * tokensData[tokenB].balanceOf(address(this)) )/ tokensData[tokenA].balanceOf(address(this));  // Spot Price (Token A in terms of Token B) = reservesB/reservesA
+        price = ( 1e18 * tempStruct.token2.balanceOf(address(this)) )/ tempStruct.token1.balanceOf(address(this));  // Spot Price (Token A in terms of Token B) = reservesB/reservesA
         return price;  // * 1e18 required in the Verification COntract
 
     }
@@ -345,9 +416,9 @@ contract SimpleSwap is Ownable {
     //@params: _addressA - Input token address
     //@params: _addressB - Output token address
     //@returns: amountOut - Calculated output amount
-    function _getEffectiveAmountOut(uint256 _amountIn, address _addressA, address _addressB) internal view
+    function _getEffectiveAmountOut(uint256 _amountIn, ERC20 _token1, ERC20 _token2) internal view
                     returns (uint256 amountOut){  
-        amountOut = (_amountIn * tokensData[_addressB].balanceOf(address(this))) / (tokensData[_addressA].balanceOf(address(this)) + _amountIn);
+        amountOut = (_amountIn * _token2.balanceOf(address(this))) / (_token1.balanceOf(address(this)) + _amountIn);
         return amountOut;
     }
 
@@ -357,10 +428,10 @@ contract SimpleSwap is Ownable {
     //@params: _token - Token address to calculate amount for
     //@params: _key - Token pair key
     //@returns: amountOut - Amount of token to return
-    function _getEffectiveLiquidOut(uint256 _liquidity, address _token, bytes memory _key) internal view
+    function _getEffectiveLiquidOut(uint256 _liquidity, ERC20 _token, LiquidityToken _liqToken) internal view
                     returns (uint256 amountOut){  
         // (senderLiquidity * tokenRESERVES ) / totalSUPPLyL 
-        amountOut =( (_liquidity * tokensData[_token].balanceOf(address(this)) ) / liqTokensData[_key].totalSupply() );
+        amountOut =( (_liquidity * _token.balanceOf(address(this)) ) / _liqToken.totalSupply() );
         return amountOut;
     }
 
@@ -398,22 +469,8 @@ contract SimpleSwap is Ownable {
     //@params: _to - Recipient address
     //@params: _amount - Transfer amount
     //@returns: status - Transfer success status
-    function _transferFrom(address token, address _from, address _to, uint256 _amount) internal returns (bool status){ 
-       return status = tokensData[token].transferFrom(_from, _to, _amount);
-    }
-
-    //@notice: Generates a unique key for a token pair
-    //@dev: Concatenates token addresses in alphabetical order
-    //@params: _temp1 - First token address bytes20
-    //@params: _temp2 - Second token address bytes20
-    //@returns: _key - Generated pair key
-    function _getKey(bytes20 _temp1, bytes20 _temp2) internal pure returns (bytes memory _key) {
-        if (_temp1 >= _temp2){
-            _key = bytes.concat(_temp1, _temp2);
-        }
-        else{
-            _key = bytes.concat(_temp2, _temp1);
-        }
+    function _transferFrom(ERC20 _token, address _from, address _to, uint256 _amount) internal returns (bool status){ 
+       return status = _token.transferFrom(_from, _to, _amount);
     }
 
 }
