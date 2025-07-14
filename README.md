@@ -96,6 +96,7 @@ A complete decentralized exchange implementation with Hardhat development enviro
 **Test Metrics:**
 
 - Resumme coverage %:
+```bash
 ---------------------|----------|----------|----------|----------|----------------|
 File                 |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
 ---------------------|----------|----------|----------|----------|----------------|
@@ -107,7 +108,7 @@ File                 |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Line
 ---------------------|----------|----------|----------|----------|----------------|
 All files            |    87.78 |    52.56 |    88.89 |    88.24 |                |
 ---------------------|----------|----------|----------|----------|----------------|
-
+```
 % Stmts:	Percentage of statements executed by tests
 % Branch:	Percentage of conditional branches tested (if/else, switches)
 % Funcs_	Percentage of functions called during tests
@@ -166,7 +167,7 @@ Uncovered Lines:	Specific lines not executed by tests
 git clone [repository-url]
 cd project-directory
 npm install
-
+```
 ### Testing
 
 ```nodejs
