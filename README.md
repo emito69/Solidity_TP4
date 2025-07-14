@@ -133,9 +133,9 @@ Uncovered Lines:	Specific lines not executed by tests
 ## Deployment Information
 
 ### Sepolia Testnet Addresses
-- SimpleSwap: [0xC746...1087](https://sepolia.etherscan.io/address/0xC7464845dbF5b1656Bd432CED057bb5e5E6c1087)
-- Token1 (TK1): [0x61d3...27C8](https://sepolia.etherscan.io/address/0x61d315bCaEf8223122cE2dcf72c573c0ca3627C8)
-- Token2 (TK2): [0xfF79...3309](https://sepolia.etherscan.io/address/0xfF79B2c665d3B4f8d61AD53245FBa44889C53309)
+- SimpleSwap: [0xC746...1087](https://sepolia.etherscan.io/address/0xc7464845dbf5b1656bd432ced057bb5e5e6c1087)
+- Token1 (TK1): [0x61d3...27C8](https://sepolia.etherscan.io/address/0x61d315bcaef8223122ce2dcf72c573c0ca3627c8)
+- Token2 (TK2): [0xfF79...3309](https://sepolia.etherscan.io/address/0xff79b2c665d3b4f8d61ad53245fba44889c53309)
 
 ## Audit Considerations
 
@@ -168,6 +168,7 @@ Uncovered Lines:	Specific lines not executed by tests
 git clone [repository-url]
 cd project-directory
 npm install
+npm install @openzeppelin/contracts       
 ```
 ### Testing
 
