@@ -30,9 +30,8 @@ FN:403,getAmountOut
 FN:419,_getEffectiveAmountOut
 FN:431,_getEffectiveLiquidOut
 FN:447,_getProportionalValue
-FN:459,_getEffectivePrice
-FN:472,_transferFrom
-FNF:11
+FN:462,_transferFrom
+FNF:10
 FNH:10
 FNDA:10,constructor
 FNDA:10,addLiquidity
@@ -43,7 +42,6 @@ FNDA:1,getAmountOut
 FNDA:2,_getEffectiveAmountOut
 FNDA:2,_getEffectiveLiquidOut
 FNDA:3,_getProportionalValue
-FNDA:0,_getEffectivePrice
 FNDA:23,_transferFrom
 DA:97,10
 DA:120,10
@@ -181,10 +179,8 @@ DA:435,2
 DA:449,3
 DA:450,3
 DA:451,3
-DA:461,0
-DA:462,0
-DA:473,23
-LF:139
+DA:463,23
+LF:137
 LH:130
 BRDA:120,1,0,10
 BRDA:120,1,1,0

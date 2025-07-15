@@ -451,16 +451,6 @@ contract SimpleSwap is Ownable {
         proportionalValue = amountA * reserveB / reserveA;  // amountB
     }
 
-    //@notice: Calculates effective price for a swap
-    //@dev: Ratio of input to output amounts
-    //@params: _amountIn - Input amount
-    //@params: _amountOut - Output amount
-    //@returns: effectivePrice - Calculated price ratio
-    function _getEffectivePrice(uint256 _amountIn, uint256 _amountOut) internal pure
-                        returns (uint256 effectivePrice){
-        effectivePrice = _amountIn / _amountOut; // quantity of tokenA per tokenB
-        return effectivePrice;
-    }
 
     //@notice: Internal token transfer function
     //@dev: Wrapper for ERC20 transferFrom
