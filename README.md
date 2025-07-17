@@ -132,7 +132,7 @@ Uncovered Lines:	Specific lines not executed by tests
 ## Deployment Information
 
 ### Sepolia Testnet Addresses
-- SimpleSwap: [0x9f8F02DAB384DDdf1591C3366069Da3Fb0018220](https://sepolia.etherscan.io/address/0x9041c3444da876c4ca43f3b3cc3c68a5df67e85c)
+- SimpleSwap: [0x9041C3444Da876C4Ca43F3B3Cc3c68a5df67E85C](https://sepolia.etherscan.io/address/0x9041c3444da876c4ca43f3b3cc3c68a5df67e85c)
 - Token1 (TK1): [0x672B37bbE48CC312b79B85E08dA1BDe6e257AF1F](https://sepolia.etherscan.io/address/0x672b37bbe48cc312b79b85e08da1bde6e257af1f)
 - Token2 (TK2): [0x64fc040F7CD358Bfe606A6f4e1aA71aE2a54Cd5d](https://sepolia.etherscan.io/address/0x64fc040f7cd358bfe606a6f4e1aa71ae2a54cd5d)
 
