@@ -40,6 +40,7 @@ A complete decentralized exchange implementation with Hardhat development enviro
 
 ### Smart Contracts
 - `SimpleSwap.sol`: Core DEX contract implementing:
+  - ERC20 token contract (TK1) with minting capability
   - Constant product AMM (x*y=k)
   - Liquidity provision/removal
   - Token swaps with slippage protection
@@ -47,7 +48,6 @@ A complete decentralized exchange implementation with Hardhat development enviro
   - Minimum liquidity locking
 - `Token1.sol`: ERC20 token contract (TK1) with minting capability
 - `Token2.sol`: ERC20 token contract (TK2) with minting capability
-- `LiquidityToken.sol`: ERC20 LP token representing pool shares
 
 ### Test Suite
 - `simpleswaptest.js`: 
@@ -96,18 +96,18 @@ A complete decentralized exchange implementation with Hardhat development enviro
 **Test Metrics:**
 
 - Resumme coverage %:
-```bash
----------------------|----------|----------|----------|----------|----------------|
-File                 |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
----------------------|----------|----------|----------|----------|----------------|
- contracts/          |    93.26 |    55.13 |      100 |    95.36 |                |
-  LiquidityToken.sol |      100 |       50 |      100 |      100 |                |
-  SimpleSwap.sol     |       92 |    55.71 |      100 |    94.89 |... 293,344,352 |
-  Token1.sol         |      100 |       50 |      100 |      100 |                |
-  Token2.sol         |      100 |       50 |      100 |      100 |                |
----------------------|----------|----------|----------|----------|----------------|
-All files            |    93.26 |    55.13 |      100 |    95.36 |                |
----------------------|----------|----------|----------|----------|----------------|
+```bash annotate
+-----------------|----------|----------|----------|----------|----------------|
+File             |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
+-----------------|----------|----------|----------|----------|----------------|
+ contracts/      |    92.68 |    55.56 |      100 |    94.29 |                |
+  SimpleSwap.sol |    91.43 |    55.88 |      100 |    93.55 |... 236,275,283 |
+  Token1.sol     |      100 |       50 |      100 |      100 |                |
+  Token2.sol     |      100 |       50 |      100 |      100 |                |
+-----------------|----------|----------|----------|----------|----------------|
+All files        |    92.68 |    55.56 |      100 |    94.29 |                |
+-----------------|----------|----------|----------|----------|----------------|
+
 
 % Stmts:	Percentage of statements executed by tests
 % Branch:	Percentage of conditional branches tested (if/else, switches)
@@ -133,9 +133,9 @@ Uncovered Lines:	Specific lines not executed by tests
 ## Deployment Information
 
 ### Sepolia Testnet Addresses
-- SimpleSwap: [0xC746...1087](https://sepolia.etherscan.io/address/0xc7464845dbf5b1656bd432ced057bb5e5e6c1087)
-- Token1 (TK1): [0x61d3...27C8](https://sepolia.etherscan.io/address/0x61d315bcaef8223122ce2dcf72c573c0ca3627c8)
-- Token2 (TK2): [0xfF79...3309](https://sepolia.etherscan.io/address/0xff79b2c665d3b4f8d61ad53245fba44889c53309)
+- SimpleSwap: [0x54218b05c15B0bB14d6098dd1945Eff8b5019389](https://sepolia.etherscan.io/address/0x54218b05c15b0bb14d6098dd1945eff8b5019389)
+- Token1 (TK1): [0x917b3026E6aFf77242150eb1F42aBF46e80E843d](https://sepolia.etherscan.io/address/0x917b3026e6aff77242150eb1f42abf46e80e843d)
+- Token2 (TK2): [0x255Db58F3E6631F3589E79a7C0ff23ABC3C853aC](https://sepolia.etherscan.io/address/0x255db58f3e6631f3589e79a7c0ff23abc3c853ac)
 
 ## Audit Considerations
 
@@ -164,7 +164,7 @@ Uncovered Lines:	Specific lines not executed by tests
 - Testnet ETH
 
 ### Installation
-```bash
+```bash annotate
 git clone [repository-url]
 cd project-directory
 npm install
@@ -172,12 +172,12 @@ npm install @openzeppelin/contracts
 ```
 ### Testing
 
-```nodejs
+```nodejs annotate
 npx hardhat test
 ```
 
 ### Coverage Report
-```nodejs
+```nodejs annotate
 npx hardhat coverage
 ```
 
