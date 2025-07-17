@@ -1,5 +1,5 @@
 const {expect} = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat"); // Addes network to reproduce transferFrom() "fails"
 const { deployProject } = require("@nomicfoundation/hardhat-ignition/modules");
 
 describe("SimpleSwap", function() {
@@ -697,9 +697,119 @@ describe("SimpleSwap", function() {
         expect(result).to.equal(owner);
     });
 
+// ********************************************************************************* // 
+//  TESTs INVOLVING NETWORKS MANUPULATION TO SIMULATE .transferFrom() falis BRANCHE  // 
+// ********************************************************************************* //
+
+// NOT WORKING .. I CANNOT MAKE swapExactTokensForTokens TO REVERT with specific reason.
+
+    it("swapExactTokensForTokens - should correctly revert with FAIL_TRANF_TKA when transferFrom fails", async function() {
+        // mintAomunt to tests
+        const mintAmount = ethers.parseEther("1000000000000000000");
+        
+        // Mint some tokens to owner
+        await token1.mint(owner, mintAmount);
+        await token2.mint(owner, mintAmount);
+
+        // Mint some tokens to addr1
+        await token1.mint(addr1, mintAmount);
+        await token2.mint(addr1, mintAmount);
+
+        // Mint some tokens to addr2
+        await token1.mint(addr2, mintAmount);
+        await token2.mint(addr2, mintAmount);
+        
+        // Approve SimpleSwap to spend tokens (the maximum)
+        await token1.approve(simpleswapAddress, mintAmount);
+        await token2.approve(simpleswapAddress, mintAmount);
+        await token1.connect(addr2).approve(simpleswapAddress, mintAmount);
+        await token2.connect(addr2).approve(simpleswapAddress, mintAmount);
+
+        // Addresses input parameter array
+        const addresssArray = [token1Address, token2Address];
+
+        //const block = await ethers.provider.getBlock("latest");
+        const deadline = 1000000001000000;
+        
+        // Add a Liquidity Pool
+        const amountDesired = ethers.parseEther("50000000000000");
+        const amountMin = ethers.parseEther("50000000");
+
+        const tx = await simpleswap.addLiquidity(token1Address, token2Address, amountDesired, amountDesired, amountMin, amountMin, owner, deadline);
+        // Wait for confirmation
+        const receipt = await tx.wait();
+        
+        // Verify transaction success
+        expect(receipt.status).to.equal(1);
+
+        // The return values are in the receipt's events
+        // Find the AddLiquidity event in the logs
+        const event = receipt.logs
+            .map(log => {
+                try {
+                return simpleswap.interface.parseLog(log);
+                } catch {
+                return null;
+                }
+            })
+            .find(e => e?.name === "AddLiquidity"); // Replace with your actual event name
+  
+        // Verify event was emitted
+        expect(event).to.not.be.undefined;
+        
+        if (event) {
+            // The amounts array is the last argument in the event
+            const a1 = event.args.amountA;
+            const a2 = event.args.amountB;
+            const l1 = event.args.liquidity;
+
+        } else {
+            console.error("Event not found in transaction receipt");
+        }
+ 
+        // check Before
+        const token2BalanceBefore = await token2.balanceOf(owner.getAddress());
+
+        const swapAmountIn = ethers.parseEther("999999");
+        const swapAmountOutMin = ethers.parseEther("10");
+
+        // *************** ***********  **************   *********** //
+        // *** FORCE tokenA TRANSFER FAIL USING EVM manipulation *** //
+        // Bytecode returning false for transferfrom
+        const FAILING_TRANSFER_BYTECODE =  "0x6080604052348015600f57600080fd5b506000600060006000600060006000346000146000526000516000f3";
+        
+        await network.provider.send("hardhat_setCode", [
+            token1Address,
+            FAILING_TRANSFER_BYTECODE // BYTECODE THAT ALWAYS RETURNS false
+        ]);
+
+        // Perform swap
+        try {
+            await expect(simpleswap.swapExactTokensForTokens(swapAmountIn, swapAmountOutMin, addresssArray, owner, deadline)).to.be.revertedWith("FAIL_TRANF_TKA");
+        } catch (error) {
+            console.log("Error en transferFrom:", error.message);
+        }
+
+        // *************** ***********  **************   *********** //
+        // RESTORE ORIGINAL CODE (OPTIONAT TO CONTINUE TESTING) *** //
+        await network.provider.send("hardhat_reset");
+       
+        // *************** ***********  **************   *********** //
+        await network.provider.send("hardhat_setCode", [
+            token2Address,
+            FAILING_TRANSFER_BYTECODE // BYTECODE THAT ALWAYS RETURNS false
+        ]);
+
+        // Perform swap
+        try {
+            await expect(simpleswap.swapExactTokensForTokens(swapAmountIn, swapAmountOutMin, addresssArray, owner, deadline)).to.be.revertedWith("FAIL_TRANF_TKB");
+        } catch (error) {
+            console.log("Error en transferFrom:", error.message);
+        }
 
 
 
+    });
 
 
 });

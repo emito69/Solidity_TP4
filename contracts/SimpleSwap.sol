@@ -27,6 +27,10 @@ contract SimpleSwap is ERC20, Ownable {
     /**
      * @notice Temporary struct to avoid stack too deep errors and Multiple Access to State Variables
      * @dev Contains various temporary variables used across functions
+     * @dev HERE THE TempStruct definition at the contract level is just a type declaration (like a blueprint)
+     * It doesn't create any storage or state variable by itself
+     * Temporary memory variable (not storage) are created inside functiones, and exists only during function execution
+     * It doesn't count as a state variable access
      */
     struct TempStruct {  
         uint256 ratio1;
@@ -37,12 +41,6 @@ contract SimpleSwap is ERC20, Ownable {
         bool statusA;
         bool statusB;
     }
-
-    /**
-     * @notice Minimum liquidity amount to be locked in the contract
-     * @dev Prevents division by zero in initial pool setup
-     */
-    uint256 MINIMUM_LIQUIDITY;
 
 /****   Modifiers   *******/
 
@@ -89,9 +87,7 @@ contract SimpleSwap is ERC20, Ownable {
      * @notice Initializes the contract with minimum liquidity requirement
      * @dev Sets the name and symbol for liquidity tokens and initializes owner
      */
-    constructor() ERC20 ("SimpleSwap Liquidity Token", "SSL") Ownable(msg.sender) {
-        MINIMUM_LIQUIDITY = 1*(10**6);
-    }
+    constructor() ERC20 ("SimpleSwap Liquidity Token", "SSL") Ownable(msg.sender) { }
 
 /**** EXTERNAL FUNCTIONS ****/
 
@@ -118,12 +114,18 @@ contract SimpleSwap is ERC20, Ownable {
         require(tokenA != tokenB, "SAME_TOKENS");
         
         /// a) Initiate temp Variables
+        /**  
+         * Temporary memory variable (not storage) tempStruct is created inside the function, and exists only during function execution
+         * It doesn't count as a state variable access
+        **/
         TempStruct memory tempStruct;
         amountA = amountADesired;  // For new pools, uses exactly the amounts provided by the user
         amountB = amountBDesired;  // For new pools, uses exactly the amounts provided by the user
 
+        uint256 swapTotalLiquidity = totalSupply();
+
         // a1) Owner Adds initial Liquidity Pool
-        if (totalSupply() == 0) {
+        if (swapTotalLiquidity == 0) {
             require(msg.sender == owner(), "POOL_NOT_INIT");
 
             token1addr = tokenA;
@@ -164,7 +166,13 @@ contract SimpleSwap is ERC20, Ownable {
             }
 
         // d) Calculate equivalent Liquidity Tokens
-        if (totalSupply() == 0) {
+        if (swapTotalLiquidity == 0) {
+            /**
+            * @notice Minimum liquidity amount to be locked in the contract
+            * @dev Prevents division by zero in initial pool setup
+            */
+            uint256 MINIMUM_LIQUIDITY = 1*(10**6);
+
             // √(amountA * amountB) is the geometric mean of the deposited amounts
             // MINIMUM_LIQUIDITY is 1000 wei (burned to prevent division by zero)
             _mint(address(this), MINIMUM_LIQUIDITY); // initial Liquidity
@@ -172,7 +180,7 @@ contract SimpleSwap is ERC20, Ownable {
             
         }else {
 
-            tempStruct.liqTemp = _calculateLiquidity(amountA, amountB, tempStruct);
+            tempStruct.liqTemp = _calculateLiquidity(amountA, amountB, tempStruct, swapTotalLiquidity);
         }
         
         // e) Mint Liquidity Tokens
@@ -183,7 +191,6 @@ contract SimpleSwap is ERC20, Ownable {
         emit AddLiquidity(msg.sender, to, tokenA, tokenB, amountA, amountB, tempStruct.liqTemp);
         
         return (amountA, amountB, tempStruct.liqTemp);
-
     }
 
     /**
@@ -202,18 +209,20 @@ contract SimpleSwap is ERC20, Ownable {
     function removeLiquidity(address tokenA, address tokenB, uint liquidity, uint amountAMin, uint amountBMin, address to, uint deadline) external 
                         returns (uint amountA, uint amountB){
         require((block.timestamp <= deadline),"DEADLINE_PAST");
-        require(totalSupply() > 0, "POOL_NOT_INIT"); //checks if the liquidity pool exists by looking at the pair's key
         require(tokenA == token1addr, "ADDR_A_ERROR");
-        require(tokenB == token2addr, "ADDR_B_ERROR");    
+        require(tokenB == token2addr, "ADDR_B_ERROR");   
 
-       
+        /// a) Initiate temp Variables
+        uint256 swapTotalLiquidity = totalSupply();
+        require(swapTotalLiquidity > 0, "POOL_NOT_INIT"); //checks if the liquidity pool exists by looking at the pair's key
+        
         // Sender needs to have Sufficient Liquidity to claim for it     
         require((liquidity <= balanceOf(msg.sender)), "INSUFF_LIQ");
 
         /// b) Ammount Calculation 
-        amountA = _getEffectiveLiquidOut(liquidity, tokenA, totalSupply());
+        amountA = _getEffectiveLiquidOut(liquidity, tokenA, swapTotalLiquidity);
         require(amountA >= amountAMin, "TKA_<_Min");  
-        amountB = _getEffectiveLiquidOut(liquidity, tokenB, totalSupply());
+        amountB = _getEffectiveLiquidOut(liquidity, tokenB, swapTotalLiquidity);
         require(amountB >= amountBMin, "TKB_<_Min");  
 
         // c) Burn Tokens
@@ -259,15 +268,15 @@ contract SimpleSwap is ERC20, Ownable {
         require(path[0] == token1addr, "ADDR_A_ERROR");
         require(path[1] == token2addr, "ADDR_B_ERROR");      
 
-        /// a1) Initiate temp Variables
+        /// a) Initiate temp Variables
         address tokenA =path[0];
         address tokenB = path[1];       
                    
-        /// a2) Ammount Calculation 
+        /// b) Ammount Calculation 
         uint256 ammountOut = _getEffectiveAmountOut(amountIn, tokenA, tokenB);
         require(ammountOut >= amountOutMin, "TKB_<_Min");  
 
-        // c) Token Transfer
+        /// c) Token Transfer
         // approve - already given by msg.sender
         // transfer
         bool statusA = ERC20(tokenA).transferFrom(msg.sender, address(this), amountIn);
@@ -308,7 +317,6 @@ contract SimpleSwap is ERC20, Ownable {
         // Spot Price (Token A in terms of Token B) = reservesB/reservesA
         price = ( 1e18 * ERC20(tokenB).balanceOf(address(this)) )/ ERC20(tokenA).balanceOf(address(this));  
         return price;  // * 1e18 required in the Verification COntract
-
     }
 
     /**
@@ -327,51 +335,34 @@ contract SimpleSwap is ERC20, Ownable {
         return amountOut;
     }
 
+
 /**** AUX FUNCTIONS ****/
 
     /**
-     * @notice Internal function to calculate effective output amount for a swap
-     * @dev Uses constant product formula
-     * @param _amountIn Input amount
-     * @param _token1 Input token address
-     * @param _token2 Output token address
-     * @return amountOut Calculated output amount
+     * @notice Internal function to calculate optimal deposit amounts
+     * @dev Ensures deposits maintain pool ratio with minimal slippage
+     * @param amountADesired Desired amount of tokenA
+     * @param amountBDesired Desired amount of tokenB
+     * @param amountAMin Minimum acceptable amount of tokenA
+     * @param amountBMin Minimum acceptable amount of tokenB
+     * @param reserveA Current reserve of tokenA
+     * @param reserveB Current reserve of tokenB
+     * @return amountA Optimal amount of tokenA to deposit
+     * @return amountB Optimal amount of tokenB to deposit
      */
-    function _getEffectiveAmountOut(uint256 _amountIn, address _token1, address _token2) internal view
-                    returns (uint256 amountOut){  
-        amountOut = (_amountIn * ERC20(_token2).balanceOf(address(this))) / (ERC20(_token1).balanceOf(address(this)) + _amountIn);
-        return amountOut;
-    }
-
-    /**
-     * @notice Internal function to calculate effective liquidity output when removing liquidity
-     * @dev Calculates proportional share of reserves
-     * @param _liquidity Amount of liquidity tokens being burned
-     * @param _token Token address to calculate output for
-     * @param _swapLiquidity Total liquidity supply
-     * @return amountOut Calculated token output amount
-     */
-    function _getEffectiveLiquidOut(uint256 _liquidity, address _token, uint256 _swapLiquidity) internal view
-                    returns (uint256 amountOut){  
-        // (senderLiquidity * tokenRESERVES ) / totalSUPPLyL 
-        amountOut =( (_liquidity * ERC20(_token).balanceOf(address(this)) ) / _swapLiquidity);
-        return amountOut;
-    }
-
-    /**
-     * @notice Internal function to calculate liquidity tokens to mint
-     * @dev Uses minimum of two ratios to determine fair liquidity amount
-     * @param amountA Amount of tokenA being added
-     * @param amountB Amount of tokenB being added
-     * @param tempStruct Temporary storage struct with current reserves
-     * @return Calculated liquidity token amount
-     */
-    function _calculateLiquidity(uint256 amountA, uint256 amountB, TempStruct memory tempStruct) internal view returns (uint256) {
-        // min(amountA/reserveA, amountB/reserveB) * total L 
-        tempStruct.ratio1 = (amountA * totalSupply()) / tempStruct.reserveA;
-        tempStruct.ratio2 = (amountB * totalSupply()) / tempStruct.reserveB;
-
-        return tempStruct.ratio1 <= tempStruct.ratio2 ? tempStruct.ratio1 : tempStruct.ratio2;
+    function _calculateOptimalAmounts(uint256 amountADesired, uint256 amountBDesired, uint256 amountAMin, uint256 amountBMin, uint256 reserveA, uint256 reserveB) internal pure 
+        returns (uint256 amountA, uint256 amountB) {
+        uint amountBProportional = _getProportionalValue(amountADesired, reserveA, reserveB);
+        
+        if (amountBProportional <= amountBDesired) {
+            require(amountBProportional >= amountBMin, "INSUF_B_AMOUNT"); // Slippage Protection
+            return (amountADesired, amountBProportional);
+        } else {
+            uint256 amountAProportional = _getProportionalValue(amountBDesired, reserveB, reserveA);
+            assert(amountAProportional <= amountADesired);
+            require(amountAProportional >= amountAMin, "INSUF_A_AMOUNT"); // Slippage Protection
+            return (amountAProportional, amountBDesired);
+        }
     }
 
     /**
@@ -390,35 +381,48 @@ contract SimpleSwap is ERC20, Ownable {
     }
 
     /**
-     * @notice Internal function to calculate optimal deposit amounts
-     * @dev Ensures deposits maintain pool ratio with minimal slippage
-     * @param amountADesired Desired amount of tokenA
-     * @param amountBDesired Desired amount of tokenB
-     * @param amountAMin Minimum acceptable amount of tokenA
-     * @param amountBMin Minimum acceptable amount of tokenB
-     * @param reserveA Current reserve of tokenA
-     * @param reserveB Current reserve of tokenB
-     * @return amountA Optimal amount of tokenA to deposit
-     * @return amountB Optimal amount of tokenB to deposit
+     * @notice Internal function to calculate liquidity tokens to mint
+     * @dev Uses minimum of two ratios to determine fair liquidity amount
+     * @param amountA Amount of tokenA being added
+     * @param amountB Amount of tokenB being added
+     * @param tempStruct Temporary storage struct with current reserves
+     * @return Calculated liquidity token amount
      */
-    function _calculateOptimalAmounts(
-        uint256 amountADesired,
-        uint256 amountBDesired,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        uint256 reserveA,
-        uint256 reserveB
-    ) internal pure returns (uint256 amountA, uint256 amountB) {
-        uint amountBProportional = _getProportionalValue(amountADesired, reserveA, reserveB);
-        
-        if (amountBProportional <= amountBDesired) {
-            require(amountBProportional >= amountBMin, "INSUF_B_AMOUNT"); // Slippage Protection
-            return (amountADesired, amountBProportional);
-        } else {
-            uint256 amountAProportional = _getProportionalValue(amountBDesired, reserveB, reserveA);
-            assert(amountAProportional <= amountADesired);
-            require(amountAProportional >= amountAMin, "INSUF_A_AMOUNT"); // Slippage Protection
-            return (amountAProportional, amountBDesired);
-        }
+    function _calculateLiquidity(uint256 amountA, uint256 amountB, TempStruct memory tempStruct, uint256 swapTotalLiquidity) internal pure returns (uint256) {
+        // min(amountA/reserveA, amountB/reserveB) * total L 
+        tempStruct.ratio1 = (amountA * swapTotalLiquidity) / tempStruct.reserveA;
+        tempStruct.ratio2 = (amountB * swapTotalLiquidity) / tempStruct.reserveB;
+
+        return tempStruct.ratio1 <= tempStruct.ratio2 ? tempStruct.ratio1 : tempStruct.ratio2;
     }
+
+    /**
+     * @notice Internal function to calculate effective liquidity output when removing liquidity
+     * @dev Calculates proportional share of reserves
+     * @param _liquidity Amount of liquidity tokens being burned
+     * @param _token Token address to calculate output for
+     * @param _swapLiquidity Total liquidity supply
+     * @return amountOut Calculated token output amount
+     */
+    function _getEffectiveLiquidOut(uint256 _liquidity, address _token, uint256 _swapLiquidity) internal view
+                    returns (uint256 amountOut){  
+        // (senderLiquidity * tokenRESERVES ) / totalSUPPLyL 
+        amountOut =( (_liquidity * ERC20(_token).balanceOf(address(this)) ) / _swapLiquidity);
+        return amountOut;
+    }
+
+    /**
+     * @notice Internal function to calculate effective output amount for a swap
+     * @dev Uses constant product formula
+     * @param _amountIn Input amount
+     * @param _token1 Input token address
+     * @param _token2 Output token address
+     * @return amountOut Calculated output amount
+     */
+    function _getEffectiveAmountOut(uint256 _amountIn, address _token1, address _token2) internal view
+                    returns (uint256 amountOut){  
+        amountOut = (_amountIn * ERC20(_token2).balanceOf(address(this))) / (ERC20(_token1).balanceOf(address(this)) + _amountIn);
+        return amountOut;
+    }
+
 }

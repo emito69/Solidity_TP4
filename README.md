@@ -100,14 +100,13 @@ A complete decentralized exchange implementation with Hardhat development enviro
 -----------------|----------|----------|----------|----------|----------------|
 File             |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
 -----------------|----------|----------|----------|----------|----------------|
- contracts/      |    92.68 |    55.56 |      100 |    94.29 |                |
-  SimpleSwap.sol |    91.43 |    55.88 |      100 |    93.55 |... 236,275,283 |
+ contracts/      |    92.94 |    55.56 |      100 |    94.39 |                |
+  SimpleSwap.sol |    91.78 |    55.88 |      100 |    93.68 |... 245,284,292 |
   Token1.sol     |      100 |       50 |      100 |      100 |                |
   Token2.sol     |      100 |       50 |      100 |      100 |                |
 -----------------|----------|----------|----------|----------|----------------|
-All files        |    92.68 |    55.56 |      100 |    94.29 |                |
+All files        |    92.94 |    55.56 |      100 |    94.39 |                |
 -----------------|----------|----------|----------|----------|----------------|
-
 
 % Stmts:	Percentage of statements executed by tests
 % Branch:	Percentage of conditional branches tested (if/else, switches)
@@ -133,9 +132,9 @@ Uncovered Lines:	Specific lines not executed by tests
 ## Deployment Information
 
 ### Sepolia Testnet Addresses
-- SimpleSwap: [0x54218b05c15B0bB14d6098dd1945Eff8b5019389](https://sepolia.etherscan.io/address/0x54218b05c15b0bb14d6098dd1945eff8b5019389)
-- Token1 (TK1): [0x917b3026E6aFf77242150eb1F42aBF46e80E843d](https://sepolia.etherscan.io/address/0x917b3026e6aff77242150eb1f42abf46e80e843d)
-- Token2 (TK2): [0x255Db58F3E6631F3589E79a7C0ff23ABC3C853aC](https://sepolia.etherscan.io/address/0x255db58f3e6631f3589e79a7c0ff23abc3c853ac)
+- SimpleSwap: [0x9f8F02DAB384DDdf1591C3366069Da3Fb0018220](https://sepolia.etherscan.io/address/0x9041c3444da876c4ca43f3b3cc3c68a5df67e85c)
+- Token1 (TK1): [0x672B37bbE48CC312b79B85E08dA1BDe6e257AF1F](https://sepolia.etherscan.io/address/0x672b37bbe48cc312b79b85e08da1bde6e257af1f)
+- Token2 (TK2): [0x64fc040F7CD358Bfe606A6f4e1aA71aE2a54Cd5d](https://sepolia.etherscan.io/address/0x64fc040f7cd358bfe606a6f4e1aa71ae2a54cd5d)
 
 ## Audit Considerations
 
