@@ -19,7 +19,6 @@ Solidity_TP4
   <h2 align="center"> <img src="https://github.com/devicons/devicon/blob/master/icons/solidity/solidity-plain.svg" title="Solidity" alt="Solidity" height="30" width="40"/> TP4 Solidity ETH-KIPU <img src="https://github.com/devicons/devicon/blob/master/icons/solidity/solidity-plain.svg" title="Solidity" alt="Solidity" height="30" width="40"/> </h2>
   Code Documentation and Explanation
   <h6 align="center"> This repository contains a decentralized exchange (DEX) project built with Hardhat, featuring Solidity smart contracts for token swapping/liquidity, comprehensive tests, and a frontend interface that interacts with deployed contracts on Sepolia testnet.</h6>
-  <br>
   <a href="https://emito69.github.io/Solidity_TP4/frontend/index.html">SimpleSwap DEX</a>
 </div>
 
